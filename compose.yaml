@@ -1,0 +1,10 @@
+# Compose to run the repository from inside the container
+services:
+  llm:
+    image: gurudeepsingh/llm:v1
+    user: "${HOST_UID}:${HOST_GID}"    # ← Necessary to allow write access to the bind mount
+    network_mode: host                 # ← host networking
+    stdin_open: true                   # ← -i
+    tty: true                          # ← -t
+    volumes:
+      - ./:/work:rw
