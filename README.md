@@ -6,7 +6,7 @@ This repository hold some quick implementation of fun projetcs using Frontier mo
 - User's can create their own environment and install the necessary libraries on the fly
 
 ## Docker
-I have already created an environment [gurudeepsingh/llm:v1](https://hub.docker.com/r/gurudeepsingh/llm/tags) containing all the libs via which user can run the repo files.
+I have already created an environment [gurudeepsingh/llm:1.1](https://hub.docker.com/r/gurudeepsingh/llm/tags) containing all the libs via which user can run the repo files.
 - export HOST_UID=$(id -u)
 - export HOST_GID=$(id -g)
 - **docker compose run --rm llm**

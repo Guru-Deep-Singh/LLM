@@ -1,10 +1,11 @@
 # Compose to run the repository from inside the container
 services:
   llm:
-    image: gurudeepsingh/llm:v1
+    image: gurudeepsingh/llm:1.1
     user: "${HOST_UID}:${HOST_GID}"    # ← Necessary to allow write access to the bind mount
     network_mode: host                 # ← host networking
     stdin_open: true                   # ← -i
     tty: true                          # ← -t
     volumes:
-      - ./:/work:rw
+      - ./:/work:rw						# ← For mounting current directory
+      - ${HOME}/.cache/whisper:/root/.cache/whisper:r	# ← For mounting the whisper model if exist
