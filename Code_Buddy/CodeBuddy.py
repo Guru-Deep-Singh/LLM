@@ -29,6 +29,8 @@ class CodeBuddy:
             self._OLLAMA_API = "http://localhost:11434/api/chat"
             self._HEADERS = {"Content-Type": "application/json"}
             self.__requestHandler = OpenAI(base_url='http://localhost:11434/v1', api_key='ollama')
+        else:
+            raise ValueError("Backend not supported")
             
     def __nonStreamCall(self,userPrompt, systemPrompt):
         response = self.__requestHandler.chat.completions.create(
@@ -55,7 +57,6 @@ class CodeBuddy:
                 yield response.content
 
 
-
     def run(self, userPrompt, stream = False, 
             systemPrompt ="You are a helpful and informed coding agent.\
             You are given a piece of code. You have to check if the code is correct or is incorrect.\
@@ -78,7 +79,6 @@ class CodeBuddy:
             messages = messages,
             stream=True
         )
-                
             
     
 
