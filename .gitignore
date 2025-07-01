@@ -185,6 +185,9 @@ week4/simple
 *.env.save
 .virtual_documents/
 WingIDE_Projekti/
+
+# tmp folder
+tmp/*
 nohup.out
 
 scraper_cache/
