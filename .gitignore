@@ -191,3 +191,7 @@ tmp/*
 nohup.out
 
 scraper_cache/
+
+*.csv
+*.mp3
+*/guru_db/*
