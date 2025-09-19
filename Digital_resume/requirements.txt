@@ -1,0 +1,8 @@
+requests
+python-dotenv
+gradio
+openai
+openai-agents
+langchain_openai
+langchain_chroma
+numpy

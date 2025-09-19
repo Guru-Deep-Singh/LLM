@@ -189,6 +189,9 @@ WingIDE_Projekti/
 # tmp folder
 tmp/*
 nohup.out
+voice_clone/*
+
+*.wav
 
 scraper_cache/
 
