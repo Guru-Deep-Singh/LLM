@@ -95,7 +95,7 @@ def record_user_details(email, name="Name not provided", notes="not provided"):
 
 ## Record the question which was not in knowledgebase
 def record_unknown_question(question):
-    push(f"Recording {question}")
+    push(f"Recording: {question}")
     return {"recorded": "ok"}
 
 record_user_details_json = {
@@ -210,42 +210,61 @@ If the user is engaging in discussion, try to steer them towards getting in touc
         wav_bytes = response.content
         return wav_bytes_to_numpy(wav_bytes)
 
-    def chat(self, message, history, enableTTS = False):
-        # Necessary for groq
+    def chat(self, message, history, enableTTS=False):
+        # Keep original user text safe
+        user_text = message
+    
+        # Gradio history -> plain list of {role, content} strings
         history = [{"role": h["role"], "content": h["content"]} for h in history]
-        
-        # RAG Context 
-        docs = self.retriever.get_relevant_documents(message)
+    
+        # RAG
+        docs = self.retriever.invoke(user_text)  # <- was get_relevant_documents
         context = retDocToStr(docs)
     
-        # Appending the RAG Context to the message
-        messages = [{"role": "system", "content": self.system_prompt()}] + history + [{"role": "user", "content": f"### CONTEXT: {context}\n\nUSER QUESTION: {message}"}]
-        
-        done = False
-        while not done:
-            response = self.openai.chat.completions.create(model=self.backend, messages=messages, tools=tools)
-            if response.choices[0].finish_reason=="tool_calls":
-                message = response.choices[0].message
-                tool_calls = message.tool_calls
-                results = self.handle_tool_call(tool_calls)
-                messages.append(message)
+        # Compose messages for the model
+        messages = [
+            {"role": "system", "content": self.system_prompt()},
+            *history,
+            {"role": "user", "content": f"### CONTEXT: {context}\n\nUSER QUESTION: {user_text}"}
+        ]
+    
+        # Tool loop
+        while True:
+            response = self.openai.chat.completions.create(
+                model=self.backend,
+                messages=messages,
+                tools=tools
+            )
+            choice = response.choices[0]
+            msg = choice.message
+    
+            if choice.finish_reason == "tool_calls" and getattr(msg, "tool_calls", None):
+                # Execute tools and feed results back
+                results = self.handle_tool_call(msg.tool_calls)
+                messages.append({"role": "assistant", "content": "", "tool_calls": msg.tool_calls})
                 messages.extend(results)
+                continue
             else:
-                done = True
-        textAnswer = response.choices[0].message.content
-
-        # Update local chat history to return to Gradio
+                # We have a final assistant message (may still be empty)
+                assistant_text = msg.content or "Noted."
+                break
+    
+        # Update UI history with STRINGS ONLY
         new_history = history + [
-            {"role": "user", "content": message},
-            {"role": "assistant", "content": textAnswer}]
-
+            {"role": "user", "content": user_text},
+            {"role": "assistant", "content": assistant_text},
+        ]
+    
+        # TTS (best-effort)
+        audio_np = None
         if enableTTS:
             try:
-                self.audio = self.textToSpeech(sanitize_for_tts(textAnswer))
-            except:
+                clean_text = sanitize_for_tts(assistant_text)
+                audio_np = self.textToSpeech(clean_text)
+            except Exception:
                 gr.Info("TTS failed. Please rely only on Text")
-                   
-        return new_history, self.audio, "" # "" is to clear up the text box
+    
+        return new_history, audio_np, "" #"" is to clearup the textbox
 
 if __name__ == "__main__":
     guru = Guru("openai/gpt-oss-120b")
